@@ -1,0 +1,9 @@
+[package]
+name = "erum"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+wgpu.workspace = true
+
+erum-internal-util = { path = "../erum-internal-util" }
