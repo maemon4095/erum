@@ -1,6 +1,9 @@
 use super::*;
 
-use crate::collections::util::iter::{Borrowed, Inserted, Replaced};
+use crate::collections::util::{
+    iter::{Borrowed, Inserted, Replaced},
+    rc::create_rc_slice_from_iter,
+};
 
 pub enum InsertResult<E, N> {
     Keep(N),
@@ -255,18 +258,18 @@ fn insert_leaf<E: SortedMapEntry>(node: &LeafNode<E>, entry: E) -> InsertResult<
     let found = node.binary_search_by_key(&entry.key(), |e| e.key());
     match found {
         Ok(idx) => {
-            let new_node = Rc::new(Replaced::new(node, entry, idx).collect());
+            let new_node = create_rc_slice_from_iter(Replaced::new(node, entry, idx));
             InsertResult::Keep(new_node)
         }
         Err(idx) if node.len() < 4 => {
-            let new_node = Rc::new(Inserted::new(node, entry, idx).collect());
+            let new_node = create_rc_slice_from_iter(Inserted::new(node, entry, idx));
             InsertResult::Keep(new_node)
         }
         Err(idx) => {
             let mut iter = Inserted::new(node, entry, idx);
-            let left_node = Rc::new(Borrowed::new(&mut iter).take(2).collect());
+            let left_node = create_rc_slice_from_iter(Borrowed::new(&mut iter).take(2));
             let mid = iter.next().unwrap();
-            let right_node = Rc::new(iter.collect());
+            let right_node = create_rc_slice_from_iter(iter);
             InsertResult::Split(left_node, mid, right_node)
         }
     }
@@ -384,14 +387,31 @@ mod test {
     }
 
     #[test]
-    fn test_inserted() {
+    fn test_inserted_sorted_uniq() {
         test_inserted_case(&(0..1000).collect::<Vec<usize>>());
-        test_inserted_case(&(0..1000).rev().collect::<Vec<usize>>());
+    }
 
+    #[test]
+    fn test_inserted_reversed_uniq() {
+        test_inserted_case(&(0..1000).rev().collect::<Vec<usize>>());
+    }
+
+    #[test]
+    fn test_inserted_unique() {
+        test_inserted_case(&create_random_case(1, 1000));
+    }
+
+    #[test]
+    fn test_inserted_random() {
         for _ in 0..1000 {
             test_inserted_case(&create_random_case(1000, 1000));
+        }
+    }
+
+    #[test]
+    fn test_inserted_random_low_sample() {
+        for _ in 0..1000 {
             test_inserted_case(&create_random_case(10, 1000));
-            test_inserted_case(&create_random_case(1, 1000));
         }
     }
 }

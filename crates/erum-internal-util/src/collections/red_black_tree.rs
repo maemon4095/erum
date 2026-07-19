@@ -42,7 +42,7 @@ impl<E: SortedMapEntry> InternalSortedMap<E> {
                 }
             }
             None => Self {
-                root: Some(Node::Leaf(Rc::new(vec![entry]))),
+                root: Some(Node::Leaf(Rc::new([entry]))),
             },
         }
     }
@@ -106,5 +106,4 @@ impl<E: SortedMapEntry> Clone for Node<E> {
     }
 }
 
-// TODO: remove indirection
-type LeafNode<E> = Rc<Vec<E>>; // 1～4個のエントリを持つ。本来1～3個だが、分割する際に対称にならないため4個とする。
+type LeafNode<E> = Rc<[E]>; // 1～4個のエントリを持つ。本来1～3個だが、分割する際に対称にならないため4個とする。

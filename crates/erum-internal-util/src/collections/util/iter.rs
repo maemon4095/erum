@@ -16,7 +16,12 @@ impl<'a, I: Iterator> Iterator for Borrowed<'a, I> {
     fn next(&mut self) -> Option<Self::Item> {
         self.iter.next()
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
+    }
 }
+impl<'a, I: ExactSizeIterator> ExactSizeIterator for Borrowed<'a, I> {}
 
 pub struct Inserted<'a, T> {
     array: &'a [T],
@@ -54,7 +59,14 @@ impl<'a, T: Clone> Iterator for Inserted<'a, T> {
             Ordering::Greater => Some(self.array[idx - 1].clone()),
         }
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let size = self.array.len() + 1 - self.current_index;
+        (size, Some(size))
+    }
 }
+
+impl<'a, T: Clone> ExactSizeIterator for Inserted<'a, T> {}
 
 pub struct Replaced<'a, T> {
     array: &'a [T],
@@ -92,4 +104,11 @@ impl<'a, T: Clone> Iterator for Replaced<'a, T> {
             Ordering::Greater => Some(self.array[idx].clone()),
         }
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let size = self.array.len() - self.current_index;
+        (size, Some(size))
+    }
 }
+
+impl<'a, T: Clone> ExactSizeIterator for Replaced<'a, T> {}
