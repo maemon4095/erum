@@ -1,16 +1,16 @@
 use std::marker::PhantomData;
 
-use crate::{
-    ComponentContext,
-    messaging::{ComponentMessage, MessageHandler},
-};
+use crate::ComponentContext;
+use crate::messaging::{ComponentMessage, MessageHandler};
 
-pub struct FunctionMessageHandler<Msg: ComponentMessage, F: Fn(ComponentContext, Msg)> {
+pub struct FunctionMessageHandler<Msg: ComponentMessage, F: 'static + Fn(&ComponentContext, Msg)> {
     handler: F,
     _phantom: PhantomData<Msg>,
 }
 
-impl<Msg: ComponentMessage, F: Fn(ComponentContext, Msg)> FunctionMessageHandler<Msg, F> {
+impl<Msg: ComponentMessage, F: 'static + Fn(&ComponentContext, Msg)>
+    FunctionMessageHandler<Msg, F>
+{
     pub fn new(handler: F) -> Self {
         Self {
             handler,
@@ -19,12 +19,12 @@ impl<Msg: ComponentMessage, F: Fn(ComponentContext, Msg)> FunctionMessageHandler
     }
 }
 
-impl<Msg: ComponentMessage, F: Fn(ComponentContext, Msg)> MessageHandler
+impl<Msg: ComponentMessage, F: 'static + Fn(&ComponentContext, Msg)> MessageHandler
     for FunctionMessageHandler<Msg, F>
 {
     type Message = Msg;
 
-    fn handle(&self, context: ComponentContext, message: Self::Message) {
+    fn handle(&self, context: &ComponentContext, message: Self::Message) {
         (self.handler)(context, message)
     }
 }
