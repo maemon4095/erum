@@ -20,6 +20,14 @@ impl<E: SortedMapEntry> Default for InternalSortedMap<E> {
     }
 }
 
+impl<E: SortedMapEntry> Clone for InternalSortedMap<E> {
+    fn clone(&self) -> Self {
+        Self {
+            root: self.root.clone(),
+        }
+    }
+}
+
 impl<E: SortedMapEntry> InternalSortedMap<E> {
     pub fn new() -> Self {
         Self { root: None }
